@@ -66,7 +66,7 @@ class Theme_Setup {
         add_theme_support( 'editor-styles' );
 
         // Add Support Language
-        load_theme_textdomain( 'gusviradigital', get_template_directory() . '/languages' );
+        load_theme_textdomain( 'gusviradigital', GDP_URI . '/languages' );
 
         // Add support for HTML5.
         add_theme_support(

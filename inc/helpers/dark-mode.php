@@ -34,9 +34,10 @@ function gdp_dark_mode_body_class($classes) {
     if (gdp_is_dark_mode_enabled()) {
         $mode = gdp_get_theme_mode();
         if ($mode === 'dark') {
-            $classes[] = 'dark-mode';
+            $classes[] = 'dark-mode dark:bg-gray-900';
+            $classes[] = 'dark';
         } elseif ($mode === 'auto') {
-            $classes[] = 'auto-dark-mode';
+            $classes[] = 'auto-dark-mode dark:bg-gray-900';
         }
     }
     return $classes;
@@ -66,8 +67,8 @@ function gdp_dark_mode_switcher() {
             createSwitcher: function() {
                 var switcher = document.createElement('button');
                 switcher.id = 'dark-mode-switcher';
+                switcher.className = 'gdp-dark-mode-switcher';
                 switcher.innerHTML = '<i class="fas fa-' + (this.isDarkMode() ? 'sun' : 'moon') + '"></i>';
-                switcher.style.cssText = 'position:fixed;top:20px;right:20px;z-index:99;width:40px;height:40px;border-radius:50%;background:#0088cc;color:#fff;border:none;cursor:pointer;';
                 document.body.appendChild(switcher);
             },
 
@@ -77,21 +78,34 @@ function gdp_dark_mode_switcher() {
                     self.toggleMode();
                 });
 
-                if (this.mode === 'auto') {
-                    window.matchMedia('(prefers-color-scheme: dark)').addListener(function(e) {
+                // Listen for system color scheme changes
+                window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function(e) {
+                    if (self.mode === 'auto') {
                         self.updateMode(e.matches ? 'dark' : 'light');
-                    });
-                }
+                    }
+                });
+
+                // Store user preference
+                window.addEventListener('beforeunload', function() {
+                    if (self.mode !== 'auto') {
+                        localStorage.setItem('gdp-theme-mode', self.isDarkMode() ? 'dark' : 'light');
+                    }
+                });
             },
 
             checkSystemPreference: function() {
+                var savedMode = localStorage.getItem('gdp-theme-mode');
+                
                 if (this.mode === 'auto') {
                     this.updateMode(window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+                } else if (savedMode) {
+                    this.updateMode(savedMode);
                 }
             },
 
             isDarkMode: function() {
-                return document.body.classList.contains('dark-mode');
+                return document.documentElement.classList.contains('dark') || 
+                       document.body.classList.contains('dark-mode');
             },
 
             toggleMode: function() {
@@ -99,12 +113,16 @@ function gdp_dark_mode_switcher() {
             },
 
             updateMode: function(mode) {
+                document.documentElement.classList.toggle('dark', mode === 'dark');
                 document.body.classList.toggle('dark-mode', mode === 'dark');
+                
                 var icon = document.querySelector('#dark-mode-switcher i');
                 if (icon) {
                     icon.className = 'fas fa-' + (mode === 'dark' ? 'sun' : 'moon');
                 }
+                
                 this.updateLogos(mode);
+                this.updateColors(mode);
             },
 
             updateLogos: function(mode) {
@@ -116,14 +134,64 @@ function gdp_dark_mode_switcher() {
                         logo.src = mode === 'dark' ? darkLogo : lightLogo;
                     }
                 });
+            },
+
+            updateColors: function(mode) {
+                // Update preloader colors if exists
+                var preloader = document.getElementById('gdp-preloader');
+                if (preloader) {
+                    preloader.style.backgroundColor = mode === 'dark' ? '#1a1a1a' : '#ffffff';
+                }
+
+                // Update other elements that need color changes
+                var elements = document.querySelectorAll('[data-dark-color]');
+                elements.forEach(function(el) {
+                    var darkColor = el.getAttribute('data-dark-color');
+                    var lightColor = el.getAttribute('data-light-color');
+                    if (darkColor && lightColor) {
+                        el.style.color = mode === 'dark' ? darkColor : lightColor;
+                    }
+                });
             }
         };
 
-        window.addEventListener('load', function() {
+        // Initialize dark mode
+        if (document.readyState === 'loading') {
+            window.addEventListener('DOMContentLoaded', function() {
+                darkMode.init();
+            });
+        } else {
             darkMode.init();
-        });
+        }
     })();
     </script>
+    <style>
+    .gdp-dark-mode-switcher {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 99;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: var(--primary-color, #0088cc);
+        color: #fff;
+        border: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+    .gdp-dark-mode-switcher:hover {
+        transform: scale(1.1);
+        box-shadow: 0 3px 8px rgba(0,0,0,0.3);
+    }
+    .dark-mode .gdp-dark-mode-switcher {
+        background: var(--primary-color-dark, #006699);
+    }
+    </style>
     <?php
 }
 add_action('wp_footer', 'gdp_dark_mode_switcher'); 

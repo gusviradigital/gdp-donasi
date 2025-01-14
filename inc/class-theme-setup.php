@@ -12,6 +12,8 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit; // Exit if accessed directly.
 }
 
+use GDP\Core\Theme_Options;
+
 /**
  * Theme Setup Class
  */
@@ -41,6 +43,7 @@ class Theme_Setup {
         add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_scripts' ] );
         add_action( 'init', [ $this, 'register_menus' ] );
         add_action( 'widgets_init', [ $this, 'sidebars' ] );
+        add_action( 'wp_body_open', [ $this, 'add_preloader' ] );
     }
 
     /**
@@ -117,10 +120,19 @@ class Theme_Setup {
     }
 
     /**
+     * Add preloader to website
+     */
+    public function add_preloader() {
+        if (class_exists('GDP\Core\Theme_Options')) {
+            $theme_options = Theme_Options::get_instance();
+            echo $theme_options->get_preloader_html();
+        }
+    }
+
+    /**
      * Enqueue scripts and styles.
      */
     public function enqueue_scripts() {
-
         // Enqueue styles.
         wp_enqueue_style( 'gusviradigital-style', GDP_DIST_CSS . '/app.css', [], GDP_VERSION );
         wp_enqueue_style('gdp-fontawesome', 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css', [], GDP_VERSION);
@@ -128,6 +140,13 @@ class Theme_Setup {
         // Enqueue scripts.
         wp_enqueue_script( 'gusviradigital-script', GDP_DIST_JS . '/app.js', [], GDP_VERSION, true );
         wp_enqueue_script('tailwind', 'https://cdn.tailwindcss.com', [], GDP_VERSION, true);
+
+        // Add custom styles
+        if (class_exists('GDP\Core\Theme_Options')) {
+            $theme_options = Theme_Options::get_instance();
+            add_action('wp_head', [$theme_options, 'add_custom_styles']);
+            add_action('wp_footer', [$theme_options, 'add_custom_scripts']);
+        }
     }
 }
 

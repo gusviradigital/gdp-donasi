@@ -62,8 +62,15 @@ class Theme_Options {
 
         $default_mode = gdp_options('default_theme_mode', 'light');
         if ($default_mode === 'auto') {
-            // Implement system preference detection via JavaScript
-            return false;
+            // Deteksi preferensi sistem melalui JavaScript
+            echo '<script>
+                (function() {
+                    var isDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+                    document.documentElement.classList.toggle("dark", isDark);
+                    document.body.classList.toggle("dark-mode", isDark);
+                })();
+            </script>';
+            return window.matchMedia("(prefers-color-scheme: dark)").matches;
         }
 
         return $default_mode === 'dark';
@@ -90,7 +97,7 @@ class Theme_Options {
                 break;
             
             case 'spinner':
-                $html .= '<div class="gdp-spinner" style="border-color: ' . esc_attr($color) . '"></div>';
+                $html .= '<div class="gdp-spinner" style="border-top-color: ' . esc_attr($color) . '; border-right-color: ' . esc_attr($color) . '; border-bottom-color: ' . esc_attr($color) . ';"></div>';
                 break;
             
             case 'progress-bar':
@@ -153,21 +160,28 @@ class Theme_Options {
                 justify-content: center;
                 transition: opacity 0.3s;
             }
+            #gdp-preloader img {
+                max-width: 200px;
+                height: auto;
+            }
         ";
 
         switch ($style) {
             case 'spinner':
                 $styles .= "
                     .gdp-spinner {
-                        width: 40px;
-                        height: 40px;
-                        border: 4px solid rgba(0,0,0,0.1);
-                        border-left-color: currentColor;
+                        width: 50px;
+                        height: 50px;
+                        border: 3px solid rgba(0,0,0,0.1);
                         border-radius: 50%;
                         animation: gdp-spin 1s linear infinite;
                     }
                     @keyframes gdp-spin {
-                        to { transform: rotate(360deg); }
+                        0% { transform: rotate(0deg); }
+                        100% { transform: rotate(360deg); }
+                    }
+                    .dark-mode .gdp-spinner {
+                        border-color: rgba(255,255,255,0.1);
                     }
                 ";
                 break;

@@ -91,9 +91,8 @@ class Autoloader {
      */
     private function register_classes() {
         self::$classes = array(
-
             'GDP\\Theme_Setup' => GDP_INC . '/class-theme-setup.php',
-            
+            'GDP\\Core\\Theme_Options' => GDP_INC . '/core/class-theme-options.php',
         );
     }
 
@@ -102,7 +101,7 @@ class Autoloader {
      */
     private function load_helpers() {
         $helper_files = [
-            
+            GDP_INC . '/helpers/dark-mode.php',
         ];
 
         foreach ( $helper_files as $file ) {
@@ -113,8 +112,8 @@ class Autoloader {
     }
 
     public function gdp_init_classes() {
-        
         \GDP\Theme_Setup::get_instance();
+        \GDP\Core\Theme_Options::get_instance();
     }
 
     /**

@@ -70,7 +70,7 @@ class Autoloader {
                         printf(
                             /* translators: %1$s: Theme name, %2$s: Link to Redux Framework */
                             esc_html__('%1$s theme requires %2$s plugin to be installed and activated.', 'gdp'),
-                            '<strong>WP Video</strong>',
+                            '<strong>GDP Donasi</strong>',
                             '<a href="https://wordpress.org/plugins/redux-framework/" target="_blank">Redux Framework</a>'
                         );
                         ?>
@@ -95,7 +95,10 @@ class Autoloader {
             'GDP\\Core\\Theme_Options' => GDP_INC . '/core/class-theme-options.php',
             'GDP\\Core\\Header' => GDP_INC . '/core/class-header.php',
             'GDP\\Core\\Footer' => GDP_INC . '/core/class-footer.php',
+            'GDP\\Core\\Layout_Front' => GDP_INC . '/core/class-layout-front.php',
             'GDP\\Navigation\\Menu_Walker' => GDP_INC . '/navigation/class-menu-walker.php',
+            'GDP\\Post_Types\\Program' => GDP_INC . '/post-types/class-program.php',
+            'GDP\\Metabox\\Program_Meta' => GDP_INC . '/metabox/class-program-meta.php',
         );
     }
 
@@ -114,11 +117,17 @@ class Autoloader {
         }
     }
 
+    /**
+     * Initialize classes
+     */
     public function gdp_init_classes() {
         \GDP\Theme_Setup::get_instance();
         \GDP\Core\Theme_Options::get_instance();
         \GDP\Core\Header::get_instance();
         \GDP\Core\Footer::get_instance();
+        \GDP\Core\Layout_Front::get_instance();
+        \GDP\Post_Types\Program::get_instance();
+        \GDP\Metabox\Program_Meta::get_instance();
     }
 
     /**
@@ -162,3 +171,6 @@ class Autoloader {
         return file_exists($file) ? $file : false;
     }
 }
+
+// Initialize Autoloader
+Autoloader::get_instance();

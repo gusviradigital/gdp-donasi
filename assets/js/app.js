@@ -1,5 +1,6 @@
 import '../css/app.css'
 import initSearch from './components/search';
+import './front';
 
 // Dark mode toggle
 document.addEventListener('DOMContentLoaded', () => {

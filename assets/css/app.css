@@ -2,14 +2,95 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+    --color-primary: #2563eb;
+    --color-primary-dark: #1d4ed8;
+    --color-secondary: #475569;
+    --color-secondary-dark: #334155;
+}
+
 @layer base {
-  body {
-    @apply bg-white text-gray-900 dark:bg-gray-900 dark:text-white;
-  }
+    body {
+        @apply bg-white text-gray-900 dark:bg-gray-900 dark:text-white;
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+        @apply font-bold;
+    }
 }
 
 @layer components {
-  .btn {
-    @apply inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500;
-  }
+    .btn {
+        @apply inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 
+    hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500;
+    }
+    .container {
+        @apply max-w-7xl mx-auto px-4;
+    }
+
+    .gdp-button {
+        @apply inline-block px-6 py-2 rounded-lg transition-colors;
+    }
+
+    .gdp-button--primary {
+        @apply bg-primary text-white hover:bg-primary-dark;
+    }
+
+    .gdp-button--secondary {
+        @apply bg-secondary text-white hover:bg-secondary-dark;
+    }
+
+    .gdp-button--outline {
+        @apply border-2 border-primary text-primary hover:bg-primary hover:text-white;
+    }
+}
+
+@layer utilities {
+    .bg-primary {
+        background-color: var(--color-primary);
+    }
+
+    .bg-primary-dark {
+        background-color: var(--color-primary-dark);
+    }
+
+    .bg-secondary {
+        background-color: var(--color-secondary);
+    }
+
+    .bg-secondary-dark {
+        background-color: var(--color-secondary-dark);
+    }
+
+    .text-primary {
+        color: var(--color-primary);
+    }
+
+    .text-primary-dark {
+        color: var(--color-primary-dark);
+    }
+
+    .text-secondary {
+        color: var(--color-secondary);
+    }
+
+    .text-secondary-dark {
+        color: var(--color-secondary-dark);
+    }
+
+    .border-primary {
+        border-color: var(--color-primary);
+    }
+
+    .border-primary-dark {
+        border-color: var(--color-primary-dark);
+    }
+
+    .border-secondary {
+        border-color: var(--color-secondary);
+    }
+
+    .border-secondary-dark {
+        border-color: var(--color-secondary-dark);
+    }
 }

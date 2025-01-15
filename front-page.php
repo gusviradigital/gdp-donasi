@@ -1,10 +1,14 @@
 <?php
 /**
- * The main template file
+ * Front page template
  *
- * @package gusviradigital
+ * @package GusviraDigital
  * @version 1.0.0
  */
+
+if ( ! defined( 'ABSPATH' ) ) {
+    exit; // Exit if accessed directly.
+}
 
 get_header();
 
@@ -31,4 +35,4 @@ $layout_front->render_partners();
 // CTA Section
 $layout_front->render_cta();
 
-get_footer(); ?>
+get_footer(); 

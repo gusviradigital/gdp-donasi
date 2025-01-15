@@ -32,6 +32,13 @@ define('GDP_INTERFACES', GDP_INC . '/interfaces');
 // Load core theme files
 require_once GDP_INC . '/class-autoloader.php';
 
+/**
+ * Load Composer autoload if exists
+ */
+if (file_exists(get_template_directory() . '/inc/libraries/autoload.php')) {
+    require_once get_template_directory() . '/inc/libraries/autoload.php';
+}
+
 // Initialize theme
 function gdp_init() {
     // Initialize autoloader first

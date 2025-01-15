@@ -1,0 +1,14 @@
+{
+    "name": "gusviradigital/gdp-donasi",
+    "description": "WordPress theme for donation and zakat management",
+    "type": "wordpress-theme",
+    "require": {
+        "php": ">=7.4",
+        "midtrans/midtrans-php": "^2.5",
+        "xendit/xendit-php": "^2.19",
+        "zerosdev/tripay-sdk-php": "^1.0"
+    },
+    "config": {
+        "vendor-dir": "inc/libraries"
+    }
+}

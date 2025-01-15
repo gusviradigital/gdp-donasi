@@ -99,6 +99,10 @@ class Autoloader {
             'GDP\\Navigation\\Menu_Walker' => GDP_INC . '/navigation/class-menu-walker.php',
             'GDP\\Post_Types\\Program' => GDP_INC . '/post-types/class-program.php',
             'GDP\\Metabox\\Program_Meta' => GDP_INC . '/metabox/class-program-meta.php',
+            'GDP\\Classes\\Donation' => GDP_INC . '/classes/class-donation.php',
+            'GDP\\Classes\\Donation_History' => GDP_INC . '/classes/class-donation-history.php',
+            'GDP\\Classes\\Payment' => GDP_INC . '/classes/class-payment.php',
+            'GDP\\Classes\\Notification' => GDP_INC . '/classes/class-notification.php',
         );
     }
 
@@ -128,6 +132,10 @@ class Autoloader {
         \GDP\Core\Layout_Front::get_instance();
         \GDP\Post_Types\Program::get_instance();
         \GDP\Metabox\Program_Meta::get_instance();
+        \GDP\Classes\Donation::get_instance();
+        \GDP\Classes\Donation_History::get_instance();
+        \GDP\Classes\Payment::get_instance();
+        \GDP\Classes\Notification::get_instance();
     }
 
     /**

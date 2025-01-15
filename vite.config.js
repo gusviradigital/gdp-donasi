@@ -11,16 +11,16 @@ export default defineConfig({
         app: resolve(__dirname, 'assets/js/app.js'),
       },
       output: {
-        entryFileNames: `assets/js/[name].js`,
-        chunkFileNames: `assets/js/[name].js`,
+        entryFileNames: `js/[name].js`,
+        chunkFileNames: `js/[name].js`,
         assetFileNames: ({name}) => {
           if (/\.(gif|jpe?g|png|svg)$/.test(name ?? '')){
-            return 'assets/images/[name][extname]';
+            return 'images/[name][extname]';
           }
           if (/\.css$/.test(name ?? '')) {
-            return 'assets/css/[name][extname]';
+            return 'css/[name][extname]';
           }
-          return 'assets/[name][extname]';
+          return '[name][extname]';
         },
       },
     },

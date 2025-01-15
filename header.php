@@ -35,7 +35,7 @@ $theme_options = \GDP\Core\Theme_Options::get_instance();
     </div>
     <?php endif; ?>
 
-    <header class="<?php echo esc_attr($header->get_header_classes()); ?> relative">
+    <header class="<?php echo esc_attr($header->get_header_classes()); ?> relative dark:bg-gray-800">
         <div class="container mx-auto px-4">
             <div class="flex items-center justify-between h-20">
                 <!-- Logo -->
@@ -67,12 +67,59 @@ $theme_options = \GDP\Core\Theme_Options::get_instance();
                     <?php endif; ?>
 
                     <?php if (gdp_options('header_search', true)): ?>
-                        <button type="button" class="text-gray-600 hover:text-primary-500 dark:text-gray-300 dark:hover:text-primary-400">
+                        <button type="button" 
+                                class="search-toggle text-gray-600 hover:text-primary-500 dark:text-gray-300 dark:hover:text-primary-400"
+                                aria-expanded="false"
+                                aria-controls="search-modal">
                             <span class="sr-only"><?php esc_html_e('Search', 'gusviradigital'); ?></span>
                             <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                             </svg>
                         </button>
+
+                        <!-- Search Modal -->
+                        <div id="search-modal" 
+                             class="fixed inset-0 z-50 hidden overflow-y-auto"
+                             role="dialog"
+                             aria-modal="true">
+                            <!-- Background backdrop -->
+                            <div class="fixed inset-0 bg-black bg-opacity-50 transition-opacity"></div>
+
+                            <!-- Modal panel -->
+                            <div class="relative min-h-screen flex items-center justify-center p-4">
+                                <div class="relative bg-white dark:bg-gray-800 rounded-lg max-w-2xl w-full p-8 shadow-xl transform transition-all">
+                                    <!-- Close button -->
+                                    <button type="button" 
+                                            class="search-close absolute top-4 right-4 text-gray-400 hover:text-gray-500 dark:hover:text-gray-300">
+                                        <span class="sr-only"><?php esc_html_e('Close', 'gusviradigital'); ?></span>
+                                        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                    </button>
+
+                                    <!-- Search form -->
+                                    <form role="search" method="get" class="search-form" action="<?php echo esc_url(home_url('/')); ?>">
+                                        <label class="block text-lg font-medium text-gray-700 dark:text-gray-300 mb-4">
+                                            <?php esc_html_e('Search', 'gusviradigital'); ?>
+                                        </label>
+                                        <div class="relative">
+                                            <input type="search" 
+                                                   class="block w-full pl-4 pr-10 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400"
+                                                   placeholder="<?php esc_attr_e('Type to search...', 'gusviradigital'); ?>"
+                                                   value="<?php echo get_search_query(); ?>"
+                                                   name="s"
+                                                   autocomplete="off">
+                                            <button type="submit" 
+                                                    class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 dark:text-gray-400">
+                                                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
                     <?php endif; ?>
                 </nav>
 
@@ -110,4 +157,4 @@ $theme_options = \GDP\Core\Theme_Options::get_instance();
         </div>
     </header>
 
-    <div id="content" class="site-content">
+    <main id="content" class="site-content">

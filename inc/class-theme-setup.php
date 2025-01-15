@@ -117,6 +117,20 @@ class Theme_Setup {
             'before_title'  => '<h2 class="widget-title">',
             'after_title'   => '</h2>',
         ] );
+
+        // Register Footer Widget Areas
+        $footer_columns = gdp_options('footer_columns', '4');
+        for ($i = 1; $i <= $footer_columns; $i++) {
+            register_sidebar([
+                'name'          => sprintf(esc_html__('Footer Widget %d', 'gusviradigital'), $i),
+                'id'            => 'footer-' . $i,
+                'description'   => sprintf(esc_html__('Add widgets for footer column %d here.', 'gusviradigital'), $i),
+                'before_widget' => '<div id="%1$s" class="widget %2$s mb-8">',
+                'after_widget'  => '</div>',
+                'before_title'  => '<h3 class="widget-title text-lg font-semibold mb-4">',
+                'after_title'   => '</h3>',
+            ]);
+        }
     }
 
     /**
@@ -138,7 +152,7 @@ class Theme_Setup {
         wp_enqueue_style('gdp-fontawesome', 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css', [], GDP_VERSION);
  
         // Enqueue scripts.
-        wp_enqueue_script( 'gusviradigital-script', GDP_DIST_JS . '/app.js', [], GDP_VERSION, true );
+        wp_enqueue_script( 'gusviradigital-script', GDP_DIST_JS . '/app.js', ['jquery'], GDP_VERSION, true );
         wp_enqueue_script('tailwind', 'https://cdn.tailwindcss.com', [], GDP_VERSION, true);
 
         // Add custom styles

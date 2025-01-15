@@ -1,4 +1,5 @@
 import '../css/app.css'
+import initSearch from './components/search';
 
 // Dark mode toggle
 document.addEventListener('DOMContentLoaded', () => {
@@ -15,5 +16,18 @@ document.addEventListener('DOMContentLoaded', () => {
     document.documentElement.classList.add('dark')
   } else {
     document.documentElement.classList.remove('dark')
+  }
+
+  // Initialize search
+  initSearch();
+
+  // Mobile menu toggle
+  const mobileMenuButton = document.querySelector('.mobile-menu-button');
+  const mobileMenu = document.querySelector('.mobile-menu');
+
+  if (mobileMenuButton && mobileMenu) {
+    mobileMenuButton.addEventListener('click', () => {
+      mobileMenu.classList.toggle('hidden');
+    });
   }
 })

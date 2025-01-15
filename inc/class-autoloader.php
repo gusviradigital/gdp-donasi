@@ -94,6 +94,7 @@ class Autoloader {
             'GDP\\Theme_Setup' => GDP_INC . '/class-theme-setup.php',
             'GDP\\Core\\Theme_Options' => GDP_INC . '/core/class-theme-options.php',
             'GDP\\Core\\Header' => GDP_INC . '/core/class-header.php',
+            'GDP\\Core\\Footer' => GDP_INC . '/core/class-footer.php',
             'GDP\\Navigation\\Menu_Walker' => GDP_INC . '/navigation/class-menu-walker.php',
         );
     }
@@ -117,6 +118,7 @@ class Autoloader {
         \GDP\Theme_Setup::get_instance();
         \GDP\Core\Theme_Options::get_instance();
         \GDP\Core\Header::get_instance();
+        \GDP\Core\Footer::get_instance();
     }
 
     /**

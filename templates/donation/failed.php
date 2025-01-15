@@ -98,7 +98,7 @@ $donation = $donation_id ? gdp_donation()->get($donation_id) : null;
             <p>
                 <?php esc_html_e('Butuh bantuan? Silakan hubungi tim support kami:', 'gusviradigital'); ?>
                 <br>
-                <a href="https://wa.me/<?php echo esc_attr(gdp_get_option('whatsapp')); ?>" target="_blank" rel="noopener">
+                <a href="https://wa.me/<?php echo esc_attr(gdp_options('whatsapp')); ?>" target="_blank" rel="noopener">
                     <?php esc_html_e('WhatsApp Support', 'gusviradigital'); ?>
                 </a>
             </p>

@@ -189,7 +189,7 @@ function gdp_get_donation_ajax_url() {
  * Get donation success page url
  */
 function gdp_get_donation_success_page_url() {
-    $page_id = gdp_get_option('donation_success_page');
+    $page_id = gdp_options('donation_success_page');
     return $page_id ? get_permalink($page_id) : home_url();
 }
 
@@ -197,14 +197,14 @@ function gdp_get_donation_success_page_url() {
  * Get donation failed page url
  */
 function gdp_get_donation_failed_page_url() {
-    $page_id = gdp_get_option('donation_failed_page');
+    $page_id = gdp_options('donation_failed_page');
     return $page_id ? get_permalink($page_id) : home_url();
 }
 
 /**
  * Get option
  */
-function gdp_get_option($key, $default = '') {
+function gdp_options($key, $default = '') {
     global $gdp_options;
     
     if (!isset($gdp_options)) {

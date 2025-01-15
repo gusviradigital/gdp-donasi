@@ -78,7 +78,7 @@ class Donation_Core {
         $charset_collate = $wpdb->get_charset_collate();
 
         // Donations table
-        $table_donations = $wpdb->prefix . 'gdp_donations';
+        $table_donations = $wpdb->prefix . 'donations';
         $sql_donations = "CREATE TABLE IF NOT EXISTS $table_donations (
             id bigint(20) NOT NULL AUTO_INCREMENT,
             program_id bigint(20) NOT NULL,
@@ -101,7 +101,7 @@ class Donation_Core {
         ) $charset_collate;";
 
         // Payment History table
-        $table_payment_history = $wpdb->prefix . 'gdp_payment_history';
+        $table_payment_history = $wpdb->prefix . 'payment_history';
         $sql_payment_history = "CREATE TABLE IF NOT EXISTS $table_payment_history (
             id bigint(20) NOT NULL AUTO_INCREMENT,
             donation_id bigint(20) NOT NULL,
@@ -122,6 +122,17 @@ class Donation_Core {
         // Create tables
         dbDelta($sql_donations);
         dbDelta($sql_payment_history);
+    }
+
+    /**
+     * Plugin activation
+     */
+    public function activate() {
+        // Create database tables
+        $this->create_tables();
+        
+        // Set flag to flush rewrite rules
+        update_option('gdp_flush_rewrite_rules', true);
     }
 }
 

@@ -1,14 +1,20 @@
 <?php
 /**
- * Gusvira Digital Theme functions and definitions
- * functions and definitions not for added to file functions.php
- *
+ * Functions and definitions
+ * 
  * @package GusviraDigital
  * @version 1.0.0
  */
 
-if ( ! defined( 'ABSPATH' ) ) {
-    exit; // Exit if accessed directly.
+if (!defined('ABSPATH')) {
+    exit;
+}
+
+/**
+ * Load helper functions
+ */
+if (file_exists(get_template_directory() . '/inc/helpers/helper-donation.php')) {
+    require_once get_template_directory() . '/inc/helpers/helper-donation.php';
 }
 
 // Define theme constants
@@ -28,6 +34,7 @@ define('GDP_CORE', GDP_INC . '/core');
 define('GDP_CLASSES', GDP_INC . '/classes');
 define('GDP_TRAITS', GDP_INC . '/traits');
 define('GDP_INTERFACES', GDP_INC . '/interfaces');
+define('GDP_FILE', __FILE__);
 
 // Load core theme files
 require_once GDP_INC . '/class-autoloader.php';

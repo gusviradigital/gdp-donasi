@@ -57,7 +57,7 @@ class Notification {
         $this->send_admin_email($donation, $new_status);
 
         // Send WhatsApp notifications if enabled
-        if (gdp_get_option('enable_whatsapp_notification') === 'yes') {
+        if (gdp_options('enable_whatsapp_notification') === 'yes') {
             $this->send_donor_whatsapp($donation, $new_status);
             $this->send_admin_whatsapp($donation, $new_status);
         }
@@ -81,7 +81,7 @@ class Notification {
      */
     private function send_admin_email($donation, $status) {
         // Get admin email
-        $admin_email = gdp_get_option('admin_email');
+        $admin_email = gdp_options('admin_email');
         if (!$admin_email) {
             $admin_email = get_option('admin_email');
         }
@@ -115,7 +115,7 @@ class Notification {
      */
     private function send_admin_whatsapp($donation, $status) {
         // Get admin phone
-        $admin_phone = gdp_get_option('admin_phone');
+        $admin_phone = gdp_options('admin_phone');
         if (!$admin_phone) {
             return;
         }
@@ -138,8 +138,8 @@ class Notification {
         }
 
         // Get API settings
-        $api_url = gdp_get_option('whatsapp_api_url');
-        $api_key = gdp_get_option('whatsapp_api_key');
+        $api_url = gdp_options('whatsapp_api_url');
+        $api_key = gdp_options('whatsapp_api_key');
 
         if (!$api_url || !$api_key) {
             return;
@@ -227,7 +227,7 @@ class Notification {
             <div style="max-width: 600px; margin: 0 auto; padding: 2rem;">
                 <!-- Header -->
                 <div style="text-align: center; margin-bottom: 2rem;">
-                    <img src="<?php echo esc_url(gdp_get_option('email_logo')); ?>" alt="Logo" style="max-width: 200px;">
+                    <img src="<?php echo esc_url(gdp_options('email_logo')); ?>" alt="Logo" style="max-width: 200px;">
                 </div>
 
                 <!-- Content -->
@@ -328,7 +328,7 @@ class Notification {
                         <?php esc_html_e('Butuh bantuan? Silakan hubungi tim support kami:', 'gusviradigital'); ?>
                     </p>
                     <p style="margin: 0;">
-                        <a href="https://wa.me/<?php echo esc_attr(gdp_get_option('whatsapp')); ?>" style="color: #2563eb; text-decoration: none;">
+                        <a href="https://wa.me/<?php echo esc_attr(gdp_options('whatsapp')); ?>" style="color: #2563eb; text-decoration: none;">
                             <?php esc_html_e('WhatsApp Support', 'gusviradigital'); ?>
                         </a>
                     </p>

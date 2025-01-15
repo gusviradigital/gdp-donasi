@@ -38,7 +38,7 @@ class Donation {
      */
     public function __construct() {
         global $wpdb;
-        $this->table = $wpdb->prefix . 'gdp_donations';
+        $this->table = $wpdb->prefix . 'donations';
         
         $this->init_hooks();
     }
@@ -47,8 +47,13 @@ class Donation {
      * Initialize hooks
      */
     private function init_hooks() {
+        // AJAX actions
         add_action('wp_ajax_gdp_create_donation', [$this, 'ajax_create_donation']);
         add_action('wp_ajax_nopriv_gdp_create_donation', [$this, 'ajax_create_donation']);
+        
+        // Load more donations
+        add_action('wp_ajax_gdp_load_more_donations', [$this, 'ajax_load_more_donations']);
+        add_action('wp_ajax_nopriv_gdp_load_more_donations', [$this, 'ajax_load_more_donations']);
     }
 
     /**
@@ -255,6 +260,78 @@ class Donation {
                 $status
             )
         );
+    }
+
+    /**
+     * Load more donations via AJAX
+     */
+    public function ajax_load_more_donations() {
+        try {
+            // Verify nonce
+            if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'gdp_nonce')) {
+                throw new \Exception(__('Invalid security token sent.', 'gusviradigital'));
+            }
+
+            // Get parameters
+            $program_id = isset($_POST['program_id']) ? absint($_POST['program_id']) : 0;
+            $page = isset($_POST['page']) ? absint($_POST['page']) : 1;
+            
+            if (!$program_id) {
+                throw new \Exception(__('Invalid program ID.', 'gusviradigital'));
+            }
+
+            // Get donations
+            $donations = $this->get_by_program($program_id, [
+                'status' => 'completed',
+                'limit' => 10,
+                'offset' => $page * 10,
+                'orderby' => 'created_at',
+                'order' => 'DESC'
+            ]);
+
+            // Start output buffer
+            ob_start();
+            
+            // Generate HTML
+            foreach ($donations as $donation) {
+                $donor_name = gdp_get_donor_name($donation);
+                $amount = gdp_format_rupiah($donation->amount);
+                $date = date_i18n(get_option('date_format') . ' ' . get_option('time_format'), strtotime($donation->created_at));
+                $message = !empty($donation->message) ? $donation->message : '';
+                ?>
+                <div class="bg-white rounded-lg shadow p-4">
+                    <div class="flex items-start justify-between">
+                        <div>
+                            <h4 class="font-semibold text-gray-900"><?php echo esc_html($donor_name); ?></h4>
+                            <p class="text-sm text-gray-600"><?php echo esc_html($date); ?></p>
+                            <?php if (!empty($message)) : ?>
+                                <p class="mt-2 text-gray-700"><?php echo esc_html($message); ?></p>
+                            <?php endif; ?>
+                        </div>
+                        <div class="text-right">
+                            <span class="font-semibold text-primary"><?php echo esc_html($amount); ?></span>
+                        </div>
+                    </div>
+                </div>
+                <?php
+            }
+
+            $html = ob_get_clean();
+
+            // Count total donations
+            $total_donations = $this->count_by_program($program_id, ['status' => 'completed']);
+            $has_more = ($page + 1) * 10 < $total_donations;
+
+            wp_send_json_success([
+                'html' => $html,
+                'has_more' => $has_more
+            ]);
+
+        } catch (\Exception $e) {
+            wp_send_json_error([
+                'message' => $e->getMessage()
+            ]);
+        }
     }
 }
 

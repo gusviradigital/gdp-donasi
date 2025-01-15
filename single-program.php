@@ -80,7 +80,13 @@ if ($deadline) {
 
             <!-- Content -->
             <div class="bg-white rounded-xl shadow-sm p-6 prose max-w-none">
-                <?php the_content(); ?>
+                <?php 
+                // Program content
+                the_content(); 
+                
+                // Donation history
+                get_template_part('template-parts/program/donation-history');
+                ?>
             </div>
         </div>
 

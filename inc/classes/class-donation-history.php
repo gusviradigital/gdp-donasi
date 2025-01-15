@@ -103,7 +103,7 @@ class Donation_History {
 
         // Build query
         $query = "SELECT d.*, p.post_title as program_name 
-                 FROM {$wpdb->prefix}gdp_donations d
+                 FROM {$wpdb->prefix}donations d
                  LEFT JOIN {$wpdb->posts} p ON d.program_id = p.ID
                  WHERE 1=1";
 
@@ -159,7 +159,7 @@ class Donation_History {
         $args = wp_parse_args($args, $defaults);
 
         // Build query
-        $query = "SELECT COUNT(*) FROM {$wpdb->prefix}gdp_donations d WHERE 1=1";
+        $query = "SELECT COUNT(*) FROM {$wpdb->prefix}donations d WHERE 1=1";
 
         // Add filters
         if ($args['status']) {
@@ -207,7 +207,7 @@ class Donation_History {
         $args = wp_parse_args($args, $defaults);
 
         // Build query
-        $query = "SELECT SUM(amount) FROM {$wpdb->prefix}gdp_donations d WHERE 1=1";
+        $query = "SELECT SUM(amount) FROM {$wpdb->prefix}donations d WHERE 1=1";
 
         // Add filters
         if ($args['status']) {

@@ -96,6 +96,7 @@ class Autoloader {
             'GDP\\Core\\Header' => GDP_INC . '/core/class-header.php',
             'GDP\\Core\\Footer' => GDP_INC . '/core/class-footer.php',
             'GDP\\Core\\Layout_Front' => GDP_INC . '/core/class-layout-front.php',
+            'GDP\\Core\\Donation_Core' => GDP_INC . '/core/class-donation-core.php',
             'GDP\\Navigation\\Menu_Walker' => GDP_INC . '/navigation/class-menu-walker.php',
             'GDP\\Post_Types\\Program' => GDP_INC . '/post-types/class-program.php',
             'GDP\\Metabox\\Program_Meta' => GDP_INC . '/metabox/class-program-meta.php',
@@ -112,6 +113,8 @@ class Autoloader {
     private function load_helpers() {
         $helper_files = [
             GDP_INC . '/helpers/dark-mode.php',
+            GDP_INC . '/helpers/payment.php',
+            GDP_INC . '/helpers/helper-donation.php'
         ];
 
         foreach ( $helper_files as $file ) {
@@ -130,6 +133,7 @@ class Autoloader {
         \GDP\Core\Header::get_instance();
         \GDP\Core\Footer::get_instance();
         \GDP\Core\Layout_Front::get_instance();
+        \GDP\Core\Donation_Core::get_instance();
         \GDP\Post_Types\Program::get_instance();
         \GDP\Metabox\Program_Meta::get_instance();
         \GDP\Classes\Donation::get_instance();

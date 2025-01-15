@@ -38,8 +38,14 @@ class Payment {
      */
     public function __construct() {
         global $wpdb;
-        $this->table = $wpdb->prefix . 'gdp_payment_history';
+        $this->table = $wpdb->prefix . 'payment_history';
         
+        // Add rewrite rule for payment callback
+        add_action('init', [$this, 'add_rewrite_rules']);
+        
+        // Handle payment callback
+        add_action('init', [$this, 'handle_payment_callback']);
+
         $this->init_hooks();
     }
 
@@ -53,6 +59,31 @@ class Payment {
         // AJAX actions
         add_action('wp_ajax_gdp_create_payment', [$this, 'ajax_create_payment']);
         add_action('wp_ajax_nopriv_gdp_create_payment', [$this, 'ajax_create_payment']);
+    }
+
+    /**
+     * Add rewrite rules for payment callback
+     */
+    public function add_rewrite_rules() {
+        // Add rewrite rule for payment callback
+        add_rewrite_rule(
+            'gdp-payment/callback/([^/]+)/?$',
+            'index.php?gdp_payment_callback=1&gateway=$matches[1]',
+            'top'
+        );
+
+        // Add query vars
+        add_filter('query_vars', function($vars) {
+            $vars[] = 'gdp_payment_callback';
+            $vars[] = 'gateway';
+            return $vars;
+        });
+
+        // Flush rewrite rules if needed
+        if (get_option('gdp_flush_rewrite_rules', false)) {
+            flush_rewrite_rules();
+            delete_option('gdp_flush_rewrite_rules');
+        }
     }
 
     /**
@@ -127,25 +158,37 @@ class Payment {
         $midtrans = $settings['midtrans'];
 
         // Load Midtrans PHP library
-        require_once GDP_INC . '/libraries/midtrans/Midtrans.php';
+        require_once GDP_INC . '/libraries/midtrans/midtrans-php/Midtrans.php';
 
         // Set Midtrans configuration
         \Midtrans\Config::$serverKey = $midtrans['server_key'];
         \Midtrans\Config::$isProduction = !$settings['test_mode'];
         \Midtrans\Config::$isSanitized = true;
         \Midtrans\Config::$is3ds = true;
+        
+        // Disable SSL verification in test mode
+        if ($settings['test_mode']) {
+            \Midtrans\Config::$curlOptions = [
+                CURLOPT_SSL_VERIFYHOST => 0,
+                CURLOPT_SSL_VERIFYPEER => 0,
+                CURLOPT_HTTPHEADER => [
+                    'Content-Type: application/json',
+                    'Accept: application/json'
+                ]
+            ];
+        }
 
         // Prepare transaction data
         $transaction_details = [
             'order_id' => 'GDP-' . $donation->id . '-' . time(),
-            'gross_amount' => $donation->amount,
+            'gross_amount' => (int)$donation->amount
         ];
 
         // Prepare customer details
         $customer_details = [
             'first_name' => $donation->name,
             'email' => $donation->email,
-            'phone' => $donation->phone,
+            'phone' => $donation->phone
         ];
 
         // Prepare item details
@@ -153,10 +196,10 @@ class Payment {
         $item_details = [
             [
                 'id' => $donation->program_id,
-                'price' => $donation->amount,
+                'price' => (int)$donation->amount,
                 'quantity' => 1,
-                'name' => $program->post_title,
-            ],
+                'name' => $program->post_title
+            ]
         ];
 
         // Prepare transaction data
@@ -164,15 +207,18 @@ class Payment {
             'transaction_details' => $transaction_details,
             'customer_details' => $customer_details,
             'item_details' => $item_details,
+            'credit_card' => [
+                'secure' => true
+            ]
         ];
 
         // Add payment method if specified
-        if ($payment_method) {
+        if ($payment_method && $payment_method !== 'midtrans') {
             $transaction_data['enabled_payments'] = [$payment_method];
         }
 
         try {
-            // Create Midtrans Snap token
+            // Create Snap token
             $snap_token = \Midtrans\Snap::getSnapToken($transaction_data);
 
             // Save payment history
@@ -182,26 +228,24 @@ class Payment {
                 'payment_method' => 'midtrans',
                 'amount' => $donation->amount,
                 'status' => 'pending',
-                'raw_response' => json_encode([
-                    'snap_token' => $snap_token,
-                    'transaction_data' => $transaction_data,
-                ]),
+                'raw_response' => json_encode($transaction_data)
             ]);
 
             // Update donation payment method
             gdp_donation()->update_status($donation->id, 'pending', [
                 'payment_id' => $transaction_details['order_id'],
                 'payment_method' => 'midtrans',
-                'snap_token' => $snap_token,
+                'payment_data' => json_encode($transaction_data)
             ]);
 
             return [
                 'snap_token' => $snap_token,
-                'client_key' => $midtrans['client_key'],
+                'checkout_url' => 'https://app.' . ($settings['test_mode'] ? 'sandbox.' : '') . 'midtrans.com/snap/snap.js'
             ];
 
         } catch (\Exception $e) {
-            throw new \Exception($e->getMessage());
+            error_log('Midtrans payment error: ' . $e->getMessage());
+            throw new \Exception('Terjadi kesalahan saat memproses pembayaran: ' . $e->getMessage());
         }
     }
 
@@ -367,11 +411,26 @@ class Payment {
      * Handle payment callback
      */
     public function handle_payment_callback() {
-        $gateway = gdp_get_active_payment_gateway();
-        if (!$gateway) {
+        // Check if this is a payment callback request
+        if (!get_query_var('gdp_payment_callback')) {
             return;
         }
 
+        // Get gateway from URL
+        $gateway = get_query_var('gateway');
+        if (empty($gateway)) {
+            $gateway = gdp_get_active_payment_gateway();
+        }
+
+        if (!$gateway) {
+            error_log('Payment callback: No gateway specified');
+            status_header(400);
+            exit('No gateway specified');
+        }
+
+        error_log('Processing payment callback for gateway: ' . $gateway);
+
+        // Handle callback based on gateway
         switch ($gateway) {
             case 'midtrans':
                 $this->handle_midtrans_callback();
@@ -382,6 +441,10 @@ class Payment {
             case 'tripay':
                 $this->handle_tripay_callback();
                 break;
+            default:
+                error_log('Payment callback: Invalid gateway - ' . $gateway);
+                status_header(400);
+                exit('Invalid gateway');
         }
     }
 
@@ -390,63 +453,169 @@ class Payment {
      */
     private function handle_midtrans_callback() {
         try {
-            $notification = new \Midtrans\Notification();
+            // Get raw post data
+            $raw_post = file_get_contents('php://input');
+            error_log('Midtrans raw notification: ' . print_r($_POST, true));
+            error_log('Midtrans raw input: ' . $raw_post);
+            
+            // Check if data is empty
+            if (empty($raw_post)) {
+                // Try to get data from $_POST
+                if (!empty($_POST)) {
+                    $raw_post = json_encode($_POST);
+                    error_log('Using POST data instead');
+                } else {
+                    throw new \Exception('No notification data received');
+                }
+            }
 
-            $transaction = $notification->transaction_status;
-            $fraud = $notification->fraud_status;
-            $order_id = $notification->order_id;
+            // Decode JSON
+            $result = json_decode($raw_post);
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                error_log('JSON decode error: ' . json_last_error_msg());
+                error_log('Failed to decode data: ' . $raw_post);
+                
+                // Try to decode as array first then convert to object
+                $result_array = json_decode($raw_post, true);
+                if (json_last_error() === JSON_ERROR_NONE && !empty($result_array)) {
+                    $result = (object)$result_array;
+                    error_log('Successfully decoded as array and converted to object');
+                } else {
+                    throw new \Exception('Failed to decode JSON: ' . json_last_error_msg());
+                }
+            }
 
-            // Get donation ID from order ID
-            preg_match('/GDP-(\d+)-/', $order_id, $matches);
-            $donation_id = $matches[1];
+            if (empty($result)) {
+                throw new \Exception('Empty notification data after decoding');
+            }
+
+            // Log decoded data
+            error_log('Midtrans decoded notification: ' . print_r($result, true));
+
+            // Set server key
+            \Midtrans\Config::$isProduction = gdp_options('midtrans_mode') === 'production';
+            \Midtrans\Config::$serverKey = gdp_options('midtrans_server_key');
+            
+            error_log('Midtrans config - Production mode: ' . (gdp_options('midtrans_mode') === 'production' ? 'yes' : 'no'));
+            error_log('Midtrans config - Server key exists: ' . (!empty(gdp_options('midtrans_server_key')) ? 'yes' : 'no'));
+
+            try {
+                // Create notification object
+                $notification = new \Midtrans\Notification();
+                
+                // Log notification object
+                error_log('Midtrans notification object created successfully');
+                error_log('Notification data: ' . print_r($notification, true));
+            } catch (\Exception $e) {
+                // If notification object creation fails, try to use decoded data
+                error_log('Failed to create notification object, using decoded data instead');
+                $notification = $result;
+            }
+
+            // Get order id - try multiple ways to get it
+            $order_id = null;
+            if (!empty($notification->order_id)) {
+                $order_id = $notification->order_id;
+            } else if (!empty($result->order_id)) {
+                $order_id = $result->order_id;
+            } else if (!empty($_POST['order_id'])) {
+                $order_id = $_POST['order_id'];
+            }
+
+            if (empty($order_id)) {
+                throw new \Exception('Order ID is missing from notification');
+            }
+            
+            $donation_id = str_replace('GDP-', '', $order_id);
+            
+            error_log('Processing order ID: ' . $order_id);
+            error_log('Extracted donation ID: ' . $donation_id);
 
             // Get donation
             $donation = gdp_donation()->get($donation_id);
             if (!$donation) {
-                throw new \Exception('Donation not found');
+                throw new \Exception('Donation not found: ' . $donation_id);
             }
 
-            // Handle transaction status
-            if ($transaction == 'capture') {
-                if ($fraud == 'challenge') {
-                    $status = 'processing';
-                } else if ($fraud == 'accept') {
-                    $status = 'completed';
+            error_log('Found donation: ' . print_r($donation, true));
+
+            // Get transaction status - try multiple ways
+            $transaction_status = null;
+            $fraud_status = null;
+
+            if (!empty($notification->transaction_status)) {
+                $transaction_status = $notification->transaction_status;
+                $fraud_status = $notification->fraud_status ?? null;
+            } else if (!empty($result->transaction_status)) {
+                $transaction_status = $result->transaction_status;
+                $fraud_status = $result->fraud_status ?? null;
+            } else if (!empty($_POST['transaction_status'])) {
+                $transaction_status = $_POST['transaction_status'];
+                $fraud_status = $_POST['fraud_status'] ?? null;
+            }
+
+            if (empty($transaction_status)) {
+                throw new \Exception('Transaction status is missing from notification');
+            }
+
+            error_log('Transaction status: ' . $transaction_status);
+            error_log('Fraud status: ' . ($fraud_status ?? 'N/A'));
+
+            $new_status = '';
+            if ($transaction_status == 'capture') {
+                if ($fraud_status == 'challenge') {
+                    $new_status = 'processing';
+                } else if ($fraud_status == 'accept') {
+                    $new_status = 'completed';
                 }
-            } else if ($transaction == 'settlement') {
-                $status = 'completed';
-            } else if ($transaction == 'pending') {
-                $status = 'pending';
-            } else if ($transaction == 'deny') {
-                $status = 'failed';
-            } else if ($transaction == 'expire') {
-                $status = 'cancelled';
-            } else if ($transaction == 'cancel') {
-                $status = 'cancelled';
+            } else if ($transaction_status == 'settlement') {
+                $new_status = 'completed';
+            } else if ($transaction_status == 'pending') {
+                $new_status = 'pending';
+            } else if ($transaction_status == 'deny' || $transaction_status == 'expire' || $transaction_status == 'cancel') {
+                $new_status = 'failed';
             }
 
-            // Update donation status
-            gdp_donation()->update_status($donation_id, $status, [
-                'transaction_status' => $transaction,
-                'fraud_status' => $fraud,
-            ]);
+            error_log('New status determined: ' . $new_status);
 
             // Save payment history
-            $this->save_payment_history([
+            $payment_history_data = [
                 'donation_id' => $donation_id,
-                'payment_id' => $order_id,
+                'payment_id' => $notification->transaction_id ?? $result->transaction_id ?? $_POST['transaction_id'] ?? null,
                 'payment_method' => 'midtrans',
-                'amount' => $notification->gross_amount,
-                'status' => $status,
-                'raw_response' => json_encode($_POST),
-            ]);
+                'amount' => $notification->gross_amount ?? $result->gross_amount ?? $_POST['gross_amount'] ?? 0,
+                'status' => $new_status,
+                'raw_response' => $raw_post
+            ];
 
+            error_log('Saving payment history: ' . print_r($payment_history_data, true));
+            $this->save_payment_history($payment_history_data);
+
+            // Update donation status
+            $donation_update_data = [
+                'payment_id' => $payment_history_data['payment_id'],
+                'payment_method' => 'midtrans',
+                'payment_data' => $raw_post
+            ];
+
+            error_log('Updating donation status: ' . print_r($donation_update_data, true));
+            gdp_donation()->update_status($donation_id, $new_status, $donation_update_data);
+
+            // Send response
+            error_log('Midtrans callback completed successfully');
             header('HTTP/1.1 200 OK');
-            exit();
+            exit('OK');
 
         } catch (\Exception $e) {
-            header('HTTP/1.1 500 Internal Server Error');
-            exit();
+            error_log('Midtrans callback error: ' . $e->getMessage());
+            error_log('Midtrans callback error trace: ' . $e->getTraceAsString());
+            error_log('POST data: ' . print_r($_POST, true));
+            error_log('GET data: ' . print_r($_GET, true));
+            error_log('SERVER data: ' . print_r($_SERVER, true));
+
+            // Send response
+            header('HTTP/1.1 400 Bad Request');
+            exit('Error: ' . $e->getMessage());
         }
     }
 

@@ -1,26 +1,42 @@
 /** @type {import('tailwindcss').Config} */
-module.exports = {
-  darkMode: 'class',
+export default {
   content: [
     './*.php',
     './inc/**/*.php',
     './template-parts/**/*.php',
-    './assets/js/**/*.js'
+    './assets/js/**/*.js',
+    './page-templates/**/*.php',
+    './assets/js/**/*.js',
   ],
+  darkMode: 'class',
   theme: {
+    container: {
+      center: true,
+      padding: '1rem',
+    },
     extend: {
-      scrollbar: ['rounded', 'thin'],
       colors: {
-        primary: '#007bff',
-        secondary: '#6c757d',
+        primary: {
+          50: '#f0f9ff',
+          100: '#e0f2fe',
+          200: '#bae6fd',
+          300: '#7dd3fc',
+          400: '#38bdf8',
+          500: '#0ea5e9',
+          600: '#0284c7',
+          700: '#0369a1',
+          800: '#075985',
+          900: '#0c4a6e',
+          950: '#082f49',
+        },
       },
       fontFamily: {
-        sans: ['Inter', 'sans-serif'],
+        sans: ['Inter var', 'sans-serif'],
       },
     },
   },
   plugins: [
-    require('tailwind-scrollbar'),
+    require('@tailwindcss/typography'),
     require('@tailwindcss/forms'),
   ],
 } 

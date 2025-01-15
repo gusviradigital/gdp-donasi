@@ -1,25 +1,38 @@
 import { defineConfig } from 'vite'
+import { resolve } from 'path'
 
 export default defineConfig({
   build: {
     outDir: 'dist',
+    emptyOutDir: true,
+    manifest: true,
     rollupOptions: {
-      input: 'assets/js/app.js',
+      input: {
+        app: resolve(__dirname, 'assets/js/app.js'),
+      },
       output: {
-        entryFileNames: 'js/[name].js',
-        chunkFileNames: 'js/[name].js',
-        assetFileNames: 'css/[name].[ext]'
-      }
-    }
+        entryFileNames: `assets/js/[name].js`,
+        chunkFileNames: `assets/js/[name].js`,
+        assetFileNames: ({name}) => {
+          if (/\.(gif|jpe?g|png|svg)$/.test(name ?? '')){
+            return 'assets/images/[name][extname]';
+          }
+          if (/\.css$/.test(name ?? '')) {
+            return 'assets/css/[name][extname]';
+          }
+          return 'assets/[name][extname]';
+        },
+      },
+    },
   },
   plugins: [],
-  css: {
-    postcss: {
-      plugins: [
-        require('tailwindcss'),
-        require('autoprefixer'),
-        require('tailwind-scrollbar'),
-      ],
-    }
-  }
+  server: {
+    cors: true,
+    strictPort: true,
+    port: 3000,
+    https: false,
+    hmr: {
+      host: 'localhost',
+    },
+  },
 }) 

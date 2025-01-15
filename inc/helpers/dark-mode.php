@@ -55,7 +55,32 @@ function gdp_dark_mode_switcher() {
     $mode = gdp_get_theme_mode();
     ?>
     <script>
+    // Inisialisasi awal dark mode sebelum DOM ready
     (function() {
+        try {
+            var savedMode = localStorage.getItem('gdp-theme-mode');
+            var defaultMode = '<?php echo esc_js($mode); ?>';
+            var isDark = false;
+
+            if (defaultMode === 'auto') {
+                isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            } else if (savedMode) {
+                isDark = savedMode === 'dark';
+            } else {
+                isDark = defaultMode === 'dark';
+            }
+
+            if (isDark) {
+                document.documentElement.classList.add('dark');
+                document.documentElement.classList.add('dark-mode');
+            }
+        } catch (e) {
+            console.log('Dark mode initialization error:', e);
+        }
+    })();
+
+    // Dark mode functionality setelah DOM ready
+    document.addEventListener('DOMContentLoaded', function() {
         var darkMode = {
             init: function() {
                 this.mode = '<?php echo esc_js($mode); ?>';
@@ -74,16 +99,29 @@ function gdp_dark_mode_switcher() {
 
             setupEventListeners: function() {
                 var self = this;
-                document.getElementById('dark-mode-switcher').addEventListener('click', function() {
-                    self.toggleMode();
-                });
+                var switcher = document.getElementById('dark-mode-switcher');
+                if (switcher) {
+                    switcher.addEventListener('click', function() {
+                        self.toggleMode();
+                    });
+                }
 
                 // Listen for system color scheme changes
-                window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function(e) {
-                    if (self.mode === 'auto') {
-                        self.updateMode(e.matches ? 'dark' : 'light');
-                    }
-                });
+                var mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+                if (mediaQuery.addEventListener) {
+                    mediaQuery.addEventListener('change', function(e) {
+                        if (self.mode === 'auto') {
+                            self.updateMode(e.matches ? 'dark' : 'light');
+                        }
+                    });
+                } else {
+                    // Fallback for older browsers
+                    mediaQuery.addListener(function(e) {
+                        if (self.mode === 'auto') {
+                            self.updateMode(e.matches ? 'dark' : 'light');
+                        }
+                    });
+                }
 
                 // Store user preference
                 window.addEventListener('beforeunload', function() {
@@ -104,8 +142,10 @@ function gdp_dark_mode_switcher() {
             },
 
             isDarkMode: function() {
-                return document.documentElement.classList.contains('dark') || 
-                       document.body.classList.contains('dark-mode');
+                var html = document.documentElement;
+                var body = document.body;
+                return (html && html.classList.contains('dark')) || 
+                       (body && body.classList.contains('dark-mode'));
             },
 
             toggleMode: function() {
@@ -113,8 +153,16 @@ function gdp_dark_mode_switcher() {
             },
 
             updateMode: function(mode) {
-                document.documentElement.classList.toggle('dark', mode === 'dark');
-                document.body.classList.toggle('dark-mode', mode === 'dark');
+                var html = document.documentElement;
+                var body = document.body;
+
+                if (html) {
+                    html.classList.toggle('dark', mode === 'dark');
+                    html.classList.toggle('dark-mode', mode === 'dark');
+                }
+                if (body) {
+                    body.classList.toggle('dark-mode', mode === 'dark');
+                }
                 
                 var icon = document.querySelector('#dark-mode-switcher i');
                 if (icon) {
@@ -155,15 +203,8 @@ function gdp_dark_mode_switcher() {
             }
         };
 
-        // Initialize dark mode
-        if (document.readyState === 'loading') {
-            window.addEventListener('DOMContentLoaded', function() {
-                darkMode.init();
-            });
-        } else {
-            darkMode.init();
-        }
-    })();
+        darkMode.init();
+    });
     </script>
     <style>
     .gdp-dark-mode-switcher {

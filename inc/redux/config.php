@@ -119,6 +119,7 @@ class Redux_Config {
             'typography',     // Typography Settings
             'custom-code',    // Custom Code Settings
             'donation',       // Donation Settings
+            'layout-front',   // Layout Front Settings
         ];
 
         foreach ( $field_files as $file ) {

@@ -93,6 +93,8 @@ class Autoloader {
         self::$classes = array(
             'GDP\\Theme_Setup' => GDP_INC . '/class-theme-setup.php',
             'GDP\\Core\\Theme_Options' => GDP_INC . '/core/class-theme-options.php',
+            'GDP\\Core\\Header' => GDP_INC . '/core/class-header.php',
+            'GDP\\Navigation\\Menu_Walker' => GDP_INC . '/navigation/class-menu-walker.php',
         );
     }
 
@@ -114,6 +116,7 @@ class Autoloader {
     public function gdp_init_classes() {
         \GDP\Theme_Setup::get_instance();
         \GDP\Core\Theme_Options::get_instance();
+        \GDP\Core\Header::get_instance();
     }
 
     /**

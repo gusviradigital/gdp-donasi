@@ -62,15 +62,22 @@ class Theme_Options {
 
         $default_mode = gdp_options('default_theme_mode', 'light');
         if ($default_mode === 'auto') {
-            // Deteksi preferensi sistem melalui JavaScript
-            echo '<script>
+            // Untuk auto mode, kita akan mengandalkan JavaScript untuk mendeteksi
+            // dan mengatur mode yang sesuai
+            add_action('wp_head', function() {
+                ?>
+                <script>
                 (function() {
                     var isDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
                     document.documentElement.classList.toggle("dark", isDark);
                     document.body.classList.toggle("dark-mode", isDark);
                 })();
-            </script>';
-            return window.matchMedia("(prefers-color-scheme: dark)").matches;
+                </script>
+                <?php
+            }, 5);
+            
+            // Default ke light mode untuk server-side rendering
+            return false;
         }
 
         return $default_mode === 'dark';
@@ -118,6 +125,24 @@ class Theme_Options {
     }
 
     /**
+     * Get logo dimensions
+     */
+    public function get_logo_dimensions() {
+        $dimensions = gdp_options('logo_dimensions', ['width' => '150', 'height' => '50']);
+        return [
+            'width' => $dimensions['width'] ?? '150',
+            'height' => $dimensions['height'] ?? '50'
+        ];
+    }
+
+    /**
+     * Get site layout
+     */
+    public function get_site_layout() {
+        return gdp_options('site_layout', 'full-width');
+    }
+
+    /**
      * Add custom styles to header
      */
     public function add_custom_styles() {
@@ -125,15 +150,94 @@ class Theme_Options {
         
         // Container width
         $container_width = gdp_options('container_width', 1320);
-        $styles .= ".container { max-width: {$container_width}px; }";
+        $styles .= ".container, .gdp-container { max-width: {$container_width}px; margin-left: auto; margin-right: auto; }";
 
-        // Logo height
-        $logo_height = gdp_options('logo_height', ['height' => '50', 'units' => 'px']);
-        $styles .= ".site-logo img { height: {$logo_height['height']}{$logo_height['units']}; }";
+        // Logo dimensions
+        $dimensions = $this->get_logo_dimensions();
+        $styles .= ".site-logo img { width: {$dimensions['width']}px; height: {$dimensions['height']}px; }";
+
+        // Layout styles
+        if ($this->get_site_layout() === 'boxed') {
+            $styles .= "
+                body {
+                    background-color: #f5f5f5;
+                }
+                #page {
+                    max-width: {$container_width}px;
+                    margin: 0 auto;
+                    background: #fff;
+                    box-shadow: 0 0 15px rgba(0,0,0,0.1);
+                }
+            ";
+        }
+
+        // RTL Support
+        if (gdp_options('enable_rtl', false)) {
+            $styles .= "
+                body {
+                    direction: rtl;
+                    unicode-bidi: embed;
+                }
+                .gdp-rtl {
+                    direction: rtl;
+                }
+            ";
+        }
+
+        // Dark Mode Styles
+        $styles .= "
+            .dark-mode {
+                background-color: #1a1a1a;
+                color: #ffffff;
+            }
+            .dark-mode #page {
+                background-color: #1a1a1a;
+            }
+            .dark-mode .gdp-container {
+                background-color: #1a1a1a;
+            }
+        ";
+
+        // Back to Top Button
+        if (gdp_options('back_to_top', true)) {
+            $styles .= "
+                #back-to-top {
+                    position: fixed;
+                    bottom: 20px;
+                    right: 20px;
+                    z-index: 99;
+                    display: none;
+                    width: 40px;
+                    height: 40px;
+                    border-radius: 50%;
+                    background: var(--primary-color, #0088cc);
+                    color: #fff;
+                    border: none;
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+                }
+                #back-to-top:hover {
+                    transform: translateY(-3px);
+                    box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+                }
+                .dark-mode #back-to-top {
+                    background: var(--primary-color-dark, #006699);
+                }
+            ";
+        }
 
         // Preloader styles
         if (gdp_options('preloader', true)) {
             $styles .= $this->get_preloader_styles();
+        }
+
+        // Smooth Scroll
+        if (gdp_options('smooth_scroll', true)) {
+            $styles .= "
+                html {
+                    scroll-behavior: smooth;
+                }
+            ";
         }
 
         $styles .= '</style>';
@@ -274,7 +378,6 @@ class Theme_Options {
                 var button = document.createElement('button');
                 button.id = 'back-to-top';
                 button.innerHTML = '<i class="fas fa-arrow-up"></i>';
-                button.style.cssText = 'position:fixed;bottom:20px;right:20px;z-index:99;display:none;width:40px;height:40px;border-radius:50%;background:#0088cc;color:#fff;border:none;cursor:pointer;';
                 document.body.appendChild(button);
 
                 window.addEventListener('scroll', function() {
@@ -285,6 +388,15 @@ class Theme_Options {
                     window.scrollTo({top: 0, behavior: 'smooth'});
                 });
             })();
+            </script>
+            <?php
+        }
+
+        // RTL Support
+        if (gdp_options('enable_rtl', false)) {
+            ?>
+            <script>
+            document.documentElement.dir = 'rtl';
             </script>
             <?php
         }

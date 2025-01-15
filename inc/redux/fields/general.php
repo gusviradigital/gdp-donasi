@@ -32,15 +32,14 @@ Redux::setSection( 'gdp_options', array(
             )
         ),
         array(
-            'id' => 'logo_height',
-            'type' => 'dimensions',
-            'units' => array('px'),
-            'title' => esc_html__('Ukuran Logo', 'gusviradigital'),
-            'subtitle' => esc_html__('Atur tinggi logo (dalam pixel)', 'gusviradigital'),
-            'width' => false,
-            'default' => array(
-                'height' => '50',
-                'units' => 'px'
+            'id'       => 'logo_dimensions',
+            'type'     => 'dimensions',
+            'units'    => array('px'),
+            'title'    => esc_html__('Ukuran Logo', 'gusviradigital'),
+            'subtitle' => esc_html__('Atur lebar dan tinggi logo (dalam pixel)', 'gusviradigital'),
+            'default'  => array(
+                'width'  => '150',
+                'height' => '50'
             )
         ),
         array(
